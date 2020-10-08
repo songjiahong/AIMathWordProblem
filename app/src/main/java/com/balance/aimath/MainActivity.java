@@ -18,8 +18,8 @@ import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     protected static final Integer InternetRequestCode = 2;
     private SpeechRecognizer speechRecognizer;
     private TextToSpeech textToSpeech;
-    private EditText editText;
+    private TextView speechText;
     private ImageView micButton;
 
     @Override
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         micButton = findViewById(R.id.buttonSpeech);
-        editText = findViewById(R.id.textSpeech);
+        speechText = findViewById(R.id.textSpeech);
 
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
 
@@ -56,54 +56,43 @@ public class MainActivity extends AppCompatActivity {
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
             @Override
             public void onReadyForSpeech(Bundle bundle) {
-
             }
 
             @Override
             public void onBeginningOfSpeech() {
-                editText.setText("");
-                editText.setHint("Listening...");
             }
 
             @Override
             public void onRmsChanged(float v) {
-
             }
 
             @Override
             public void onBufferReceived(byte[] bytes) {
-
             }
 
             @Override
             public void onEndOfSpeech() {
-                editText.setText("");
-                editText.setHint("Parsing...");
             }
 
             @Override
             public void onError(int i) {
-                editText.setText("");
-                editText.setHint("Error code: " + i);
+                speechText.setText("Error code: " + i);
+                textToSpeech.speak(Solver.evaluate(null), TextToSpeech.QUEUE_FLUSH, null);
             }
 
             @Override
             public void onResults(Bundle bundle) {
-                // micButton.setImageResource(R.drawable.ic_mic_black_off);
-                editText.setText("results ...");
                 ArrayList<String> data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                editText.setText(data.get(0));
-                textToSpeech.speak(data.get(0), TextToSpeech.QUEUE_FLUSH, null);
+                speechText.setText(data.get(0));
+                textToSpeech.speak(Solver.evaluate(data.get(0)), TextToSpeech.QUEUE_FLUSH, null);
             }
 
             @Override
             public void onPartialResults(Bundle bundle) {
-
             }
 
             @Override
             public void onEvent(int i, Bundle bundle) {
-
             }
         });
 
@@ -111,12 +100,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if (motionEvent.getAction() == MotionEvent.ACTION_UP){
-                    editText.setText("Stop listening...");
+                    speechText.setText("Stop listening...");
                     speechRecognizer.stopListening();
                 }
                 if (motionEvent.getAction() == MotionEvent.ACTION_DOWN){
-                    editText.setText("Start listening...");
-                    // micButton.setImageResource(R.drawable.ic_mic_black_24dp);
+                    speechText.setText("Start listening...");
                     speechRecognizer.startListening(speechRecognizerIntent);
                 }
                 return false;
@@ -127,10 +115,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onInit(int status) {
                 if (status == TextToSpeech.SUCCESS) {
-                    int result = textToSpeech.setLanguage(Locale.US);
+                    int result = textToSpeech.setLanguage(Locale.CHINA);
                     if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                         Log.e("error", "Language is not supported");
-                        editText.setText("Language is not supported");
+                        speechText.setText("Language is not supported");
                     }
                 } else {
                     Log.e("error", "TextToSpeech initialize failed!");
